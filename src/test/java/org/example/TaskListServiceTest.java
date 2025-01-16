@@ -10,6 +10,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.containers.wait.strategy.WaitAllStrategy;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -22,21 +23,7 @@ class TaskListServiceTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskListServiceTest.class);
 
     @Container
-    private GenericContainer postgres = new GenericContainer(DockerImageName.parse("postgres:12.12"))
-            // provide Environment variables required by your container
-            .withEnv("POSTGRES_USER", "admin")
-            .withEnv("POSTGRES_PASSWORD", "admin")
-            .withEnv("POSTGRES_DB", "tasklist")
-            // provide an init scrip for the Postgres database
-            .withClasspathResourceMapping("postgresInit.sql", "/docker-entrypoint-initdb.d/Init.sql", BindMode.READ_ONLY)
-            .withExposedPorts(5432)
-            // condition to be met for testcontainers to consider the postgres container ready
-            .waitingFor(new WaitAllStrategy() // for container liveness checks
-                // wait until the log message is printed
-                .withStrategy(Wait.forLogMessage(".*database system is ready to accept connections.*", 1))
-                // wait until port in pingable
-                .withStrategy(Wait.defaultWaitStrategy())
-            );
+    private GenericContainer postgres = new TaskListPostgresContainer();
 
     @Container
     private GenericContainer nginx = new GenericContainer(DockerImageName.parse("nginx:1.23"))
